@@ -1,0 +1,14 @@
+[Unit]
+Description=Arch Voice - virtual microphone and real-time voice changer
+Documentation=https://github.com/newnetmp3/Arch-Voice
+After=pipewire.service wireplumber.service
+BindsTo=pipewire.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/arch-voice daemon
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Arch Voice
+GenericName=Voice Changer
+Comment=Real-time voice changer for PipeWire
+Exec=arch-voice
+Icon=audio-input-microphone
+Terminal=false
+Categories=AudioVideo;Audio;Mixer;
+Keywords=voice;changer;pitch;robot;microphone;pipewire;discord;
+StartupNotify=true
