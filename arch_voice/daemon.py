@@ -207,8 +207,10 @@ class Engine:
             return (outs, ins) if outs and ins else None
 
         outs, ins = self._wait_for(ready, "effect chain", child)
+        # A normal (non-passive) link: since PipeWire 1.2 a passive link here
+        # can leave the chain unscheduled, so the virtual mic is silent.
         for o, i in zip(outs, ins):
-            pwutil.link(o.id, i.id)
+            pwutil.link(o.id, i.id, passive=False)
 
     def set_param(self, key: str, value: float) -> str:
         """Update one parameter of the active preset. Returns 'live' or 'restart'."""

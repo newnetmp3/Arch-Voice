@@ -22,6 +22,7 @@ sha256sums=()
 
 build() {
   cd "$startdir"
+  rm -rf build ./*.egg-info  # never package stale copies of the modules
   python -m build --wheel --no-isolation --outdir "$srcdir/dist"
 }
 

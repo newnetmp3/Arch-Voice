@@ -56,6 +56,7 @@ arch-voice input <name|default> choose which microphone to process
 arch-voice monitor on|off       hear yourself
 arch-voice quality fast|hq      Rubber Band R2 (default) or R3 engine
 arch-voice status               show what is active
+arch-voice test [seconds]       record from the virtual mic and report the level
 arch-voice stop                 stop and remove the virtual mic
 arch-voice dump <preset>        print the generated PipeWire config
 ```

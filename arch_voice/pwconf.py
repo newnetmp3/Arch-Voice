@@ -48,13 +48,16 @@ def mic_config(description: str = "Arch Voice Mic") -> str:
                 "node.name": BUS_NODE,
                 "node.description": "Arch Voice (internal bus)",
                 "node.autoconnect": False,
-                "node.passive": True,
+                "audio.channels": 1,
+                "audio.position": [Raw("MONO")],
                 "media.role": "Communication",
             },
             "playback.props": {
                 "node.name": MIC_NODE,
                 "node.description": description,
                 "media.class": "Audio/Source",
+                "audio.channels": 1,
+                "audio.position": [Raw("MONO")],
                 "device.icon-name": "audio-input-microphone",
             },
         },
@@ -67,8 +70,12 @@ def fx_config(graph: Graph, generation: int, title: str,
     capture = {
         "node.name": f"{FX_IN}.{generation}",
         "node.description": f"Arch Voice FX input ({title})",
+        # Passive only towards the hardware mic, as in PipeWire's own
+        # virtual-source examples: the mic is opened when someone listens.
         "node.passive": True,
         "node.dont-reconnect": False,
+        "audio.channels": 1,
+        "audio.position": [Raw("MONO")],
         "media.role": "Communication",
     }
     if input_target:
@@ -86,7 +93,8 @@ def fx_config(graph: Graph, generation: int, title: str,
                 "node.name": f"{FX_OUT}.{generation}",
                 "node.description": f"Arch Voice FX output ({title})",
                 "node.autoconnect": False,
-                "node.passive": True,
+                "audio.channels": 1,
+                "audio.position": [Raw("MONO")],
             },
         },
     }

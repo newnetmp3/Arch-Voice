@@ -141,6 +141,49 @@ def cmd_stop(args) -> int:
     return 0
 
 
+def cmd_test(args) -> int:
+    """Record a few seconds from the virtual mic and report the level."""
+    import array
+    import math
+    import subprocess
+    import tempfile
+    import wave
+
+    from . import pwconf
+    st = call("status")
+    print(f"Preset: {st['preset']}   Input: {st['input'] or 'system default'}")
+    print(f"Speak now — recording {args.seconds:g} s from '{pwconf.MIC_NODE}'...")
+    with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
+        rec = subprocess.Popen(["pw-record", "--target", pwconf.MIC_NODE, "--channels", "1",
+                                "--rate", "48000", "--format", "s16", tmp.name],
+                               stderr=subprocess.PIPE, text=True)
+        try:
+            rec.wait(timeout=args.seconds)
+        except subprocess.TimeoutExpired:
+            rec.terminate()
+            rec.wait()
+        try:
+            with wave.open(tmp.name) as w:
+                data = array.array("h", w.readframes(w.getnframes()))
+        except (wave.Error, EOFError):
+            data = array.array("h")
+    if not data:
+        print("No audio frames arrived at all: the virtual mic is not running.\n"
+              "Check 'pw-link -l' and ~/.cache/arch-voice/logs/.")
+        return 1
+    peak = max(abs(x) for x in data) / 32768
+    rms = math.sqrt(sum(x * x for x in data) / len(data)) / 32768
+    db = lambda v: 20 * math.log10(v) if v > 0 else float("-inf")
+    print(f"Got {len(data) / 48000:.1f} s of audio: peak {db(peak):.1f} dBFS, "
+          f"average {db(rms):.1f} dBFS")
+    if peak < 0.001:
+        print("It is silent. The effect chain runs but gets no sound from your microphone:\n"
+              "check 'arch-voice inputs' / 'arch-voice input <name>' and that the mic is unmuted.")
+        return 1
+    print("The virtual mic is working.")
+    return 0
+
+
 def cmd_daemon(args) -> int:
     from .daemon import run
     return run()
@@ -200,6 +243,10 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("quality", help="pitch shifter: 'fast' (R2) or 'hq' (R3, more CPU)")
     s.add_argument("value", choices=["fast", "hq"])
     s.set_defaults(func=cmd_quality)
+
+    s = sub.add_parser("test", help="record from the virtual mic and report the level")
+    s.add_argument("seconds", nargs="?", type=float, default=3.0)
+    s.set_defaults(func=cmd_test)
 
     sub.add_parser("stop", help="stop the voice changer and remove the virtual mic").set_defaults(func=cmd_stop)
     sub.add_parser("daemon", help="run the background service in the foreground").set_defaults(func=cmd_daemon)
