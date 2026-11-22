@@ -357,10 +357,16 @@ class Window(Adw.ApplicationWindow):
         if self._updating:
             return
         on = btn.get_active()
+        def failed(e):
+            self._updating = True
+            btn.set_active(False)
+            self._updating = False
+            self._on_error(e)
+
         run_async(lambda: call("monitor", on=on),
                   done=lambda st: self.toast("Monitoring on — use headphones" if on
                                              else "Monitoring off"),
-                  error=self._on_error)
+                  error=failed)
 
     def _on_hq(self, action, _param):
         new = not action.get_state().get_boolean()

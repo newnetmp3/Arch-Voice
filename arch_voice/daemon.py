@@ -261,22 +261,40 @@ class Engine:
                 self.apply(self.chain.preset, self.chain.values)
 
     def set_monitor(self, on: bool) -> None:
+        """Play the processed voice to the default output so you can hear it.
+
+        Like the FX chain, the monitor is a loopback we link to the virtual
+        mic ourselves with pw-link rather than relying on the session
+        manager to find it by name (which WirePlumber 0.5 may not do for a
+        source that is itself a loopback stream).
+        """
         with self.lock:
             if self.monitor:
                 self.monitor.stop()
                 self.monitor = None
+            self.state.monitor = False
             if on:
-                self.monitor = Child("monitor", [
-                    "pw-loopback",
-                    "--capture-props", f"node.name={pwconf.MONITOR_NODE}.in "
-                                       f"target.object={pwconf.MIC_NODE} "
-                                       "node.description=\"Arch Voice monitor\"",
-                    "--playback-props", f"node.name={pwconf.MONITOR_NODE} "
-                                        "node.description=\"Arch Voice monitor\" "
-                                        "media.role=Monitor",
-                    "--channels", "1",
-                ])
-            self.state.monitor = on
+                self._start_mic()
+                path = cache_dir() / "monitor.conf"
+                path.write_text(pwconf.monitor_config())
+                child = Child("monitor", ["pipewire", "-c", str(path)])
+
+                def ready(objs):
+                    outs = pwutil.node_ports(pwconf.MIC_NODE, "output", objs)
+                    ins = pwutil.node_ports(pwconf.MONITOR_IN, "input", objs)
+                    return (outs, ins) if outs and ins else None
+
+                try:
+                    outs, ins = self._wait_for(ready, "monitor", child)
+                    for o, i in zip(outs, ins):
+                        # An active link: monitoring should keep the mic running.
+                        pwutil.link(o.id, i.id, passive=False)
+                except Exception as e:
+                    child.stop()
+                    self.state.save()
+                    raise pwutil.PipeWireError(f"could not start monitoring: {e}") from e
+                self.monitor = child
+                self.state.monitor = True
             self.state.save()
 
     # -- status / supervision ----------------------------------------------
@@ -312,13 +330,16 @@ class Engine:
                             self.chain.child.stop()
                             self.chain = None
                         self.apply(self.state.preset)
+                        if self.monitor:  # its link to the old mic is gone
+                            self.set_monitor(True)
                     elif self.chain and not self.chain.child.alive():
                         log("effect chain died; restarting")
                         self.chain.child.stop()
                         preset, values = self.chain.preset, self.chain.values
                         self.chain = None
                         self.apply(preset, values)
-                    if self.state.monitor and self.monitor and not self.monitor.alive():
+                    if self.monitor and not self.monitor.alive():
+                        log("monitor died; restarting")
                         self.set_monitor(True)
                 except Exception as e:  # keep the watchdog alive
                     self.last_error = str(e)

@@ -9,7 +9,8 @@ MIC_NODE = "arch_voice_mic"      # the virtual microphone apps record from
 BUS_NODE = "arch_voice_bus"      # internal input that the FX chain feeds
 FX_IN = "arch_voice_fx_in"       # FX chain capture stream (prefix)
 FX_OUT = "arch_voice_fx_out"     # FX chain playback stream (prefix)
-MONITOR_NODE = "arch_voice_monitor"
+MONITOR_NODE = "arch_voice_monitor"   # monitor playback (to your speakers)
+MONITOR_IN = "arch_voice_monitor_in"  # monitor capture (linked from the mic)
 
 _BASE = {
     "context.properties": {"log.level": 0},
@@ -90,3 +91,28 @@ def fx_config(graph: Graph, generation: int, title: str,
         },
     }
     return dump_document({**_BASE, "context.modules": _modules([chain])})
+
+
+def monitor_config() -> str:
+    """Loopback from the virtual mic to the default output device."""
+    loopback = {
+        "name": "libpipewire-module-loopback",
+        "args": {
+            "node.description": "Arch Voice monitor",
+            "audio.channels": 1,
+            "audio.position": [Raw("MONO")],
+            "capture.props": {
+                "node.name": MONITOR_IN,
+                "node.description": "Arch Voice monitor (input)",
+                "node.autoconnect": False,  # we link it to the mic ourselves
+                "stream.dont-remix": True,
+            },
+            "playback.props": {
+                "node.name": MONITOR_NODE,
+                "node.description": "Arch Voice monitor",
+                # Upmix mono to both ears instead of only the left channel.
+                "audio.position": [Raw("MONO")],
+            },
+        },
+    }
+    return dump_document({**_BASE, "context.modules": _modules([loopback])})

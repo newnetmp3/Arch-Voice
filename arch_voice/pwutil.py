@@ -8,9 +8,9 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 
-from .pwconf import BUS_NODE, FX_IN, FX_OUT, MIC_NODE, MONITOR_NODE
+from .pwconf import BUS_NODE, FX_IN, FX_OUT, MIC_NODE, MONITOR_IN, MONITOR_NODE
 
-OUR_PREFIXES = (MIC_NODE, BUS_NODE, FX_IN, FX_OUT, MONITOR_NODE)
+OUR_PREFIXES = (MIC_NODE, BUS_NODE, FX_IN, FX_OUT, MONITOR_NODE, MONITOR_IN)
 
 
 class PipeWireError(RuntimeError):
