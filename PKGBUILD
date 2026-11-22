@@ -16,9 +16,16 @@ depends=(
   'gtk4'
   'libadwaita'
 )
-makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+makedepends=('git' 'python-build' 'python-installer' 'python-setuptools' 'python-wheel')
 source=()
 sha256sums=()
+
+# The version includes the commit, so after a 'git pull' makepkg builds a new
+# package instead of reinstalling the previously built one.
+pkgver() {
+  cd "$startdir"
+  printf "0.1.0.r%s.g%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
 
 build() {
   cd "$startdir"
