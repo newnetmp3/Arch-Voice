@@ -11,7 +11,7 @@ depends=(
   'python'
   'pipewire'       # filter-chain, loopback, pw-cli, pw-link, pw-dump
   'wireplumber'    # session manager that connects the microphone
-  'rubberband'     # LADSPA pitch shifter used by pitch presets
+  'rubberband-ladspa'  # LADSPA pitch shifter used by pitch presets
   'python-gobject'
   'gtk4'
   'libadwaita'

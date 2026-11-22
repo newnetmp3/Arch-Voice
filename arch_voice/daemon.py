@@ -173,7 +173,7 @@ class Engine:
                 if node.type == "ladspa" and not pwutil.ladspa_available(node.plugin):
                     raise pwutil.PipeWireError(
                         f"preset needs the LADSPA plugin '{node.plugin}' "
-                        "(install the 'rubberband' package)")
+                        "(on Arch: sudo pacman -S rubberband-ladspa)")
 
             self.generation += 1
             gen = self.generation

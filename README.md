@@ -24,7 +24,7 @@ cd Arch-Voice && makepkg -si
 ```
 
 Dependencies (pulled in automatically): `pipewire`, `wireplumber`,
-`rubberband` (LADSPA pitch shifter), `python-gobject`, `gtk4`, `libadwaita`.
+`rubberband-ladspa` (LADSPA pitch shifter), `python-gobject`, `gtk4`, `libadwaita`.
 
 To start the voice changer automatically when you log in:
 
@@ -180,7 +180,7 @@ Run `python -m unittest discover -s tests` to validate the graph.
   heavy effects.
 - **Wrong microphone is processed:** `arch-voice inputs`, then
   `arch-voice input <name>`.
-- **Pitch presets fail with a LADSPA error:** install `rubberband`.
+- **Pitch presets fail with a LADSPA error:** `sudo pacman -S rubberband-ladspa` (Arch ships the plugin separately from `rubberband`).
 - **Latency:** pitch shifting adds roughly 50–100 ms (inherent to real-time
   pitch shifting). Non-pitch presets add next to none.
 - **Logs:** `journalctl --user -u arch-voice` (service) or
