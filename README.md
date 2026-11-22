@@ -23,9 +23,15 @@ git clone https://github.com/newnetmp3/Arch-Voice.git
 cd Arch-Voice && makepkg -si
 ```
 
-To update later, run `git pull && makepkg -si` again, then `arch-voice stop`
-(or `systemctl --user restart arch-voice.service`) so the background service
-restarts with the new code.
+To update later:
+
+```bash
+git checkout PKGBUILD && git pull && makepkg -si
+```
+
+(`makepkg` writes the version number into `PKGBUILD`, hence the checkout.)
+Then run `arch-voice stop` (or `systemctl --user restart arch-voice.service`)
+so the background service restarts with the new code.
 
 Dependencies (pulled in automatically): `pipewire`, `wireplumber`,
 `rubberband-ladspa` (LADSPA pitch shifter), `python-gobject`, `gtk4`, `libadwaita`.
